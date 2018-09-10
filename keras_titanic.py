@@ -25,7 +25,7 @@ def separate_labels(df):
 def preprocess(df):
 	create_new_cols(df)
 	df['Sex'].replace(['male', 'female'], [0, 1], inplace = True)
-	df.drop(['Cabin', 'Name', 'Ticket', 'Fare'], axis=1, inplace=True)
+	df.drop(['Cabin', 'Name', 'Ticket', 'Fare', 'SibSp'], axis=1, inplace=True)
 	df = pd.get_dummies(df, prefix = ['Departed'], columns = ['Embarked'])
 
 	pipeline = Pipeline([
@@ -46,7 +46,7 @@ X = preprocess(df)
 X_train, X_validation, y_train, y_validation = train_test_split(X, y, test_size=0.2, random_state=42)
 
 model = Sequential()
-model.add(Dense(units=500, activation=tf.nn.relu, input_dim=9))
+model.add(Dense(units=500, activation=tf.nn.relu, input_dim=8))
 model.add(Dense(units=200, activation=tf.nn.relu))
 model.add(Dense(units=2, activation=tf.nn.softmax))
 
@@ -54,7 +54,7 @@ model.compile(loss='sparse_categorical_crossentropy',
 	optimizer='sgd',
 	metrics=['accuracy'])
 
-model.fit(X_train, y_train, validation_data=(X_validation, y_validation), epochs=9)
+model.fit(X_train, y_train, validation_data=(X_validation, y_validation), epochs=9, class_weight = 'auto')
 
 loss, accuracy = model.evaluate(X_validation, y_validation)
 
@@ -71,7 +71,6 @@ predictions = pd.DataFrame(y_sub, index = df_test.index)
 predictions.rename(columns = {0: 'Survived'}, inplace = True)
 
 print(predictions.head())
-
 
 predictions.to_csv('titanic_submission.csv')
 sub_check = pd.read_csv('titanic_submission.csv', index_col = 0)
